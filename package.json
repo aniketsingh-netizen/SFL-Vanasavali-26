@@ -1,0 +1,29 @@
+{
+  "name": "vansavali",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c blue,green \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm run dev --workspace @vansavali/api",
+    "dev:web": "npm run dev --workspace @vansavali/web",
+    "build": "npm run build --workspace @vansavali/api && npm run build --workspace @vansavali/web",
+    "test": "npm run test --workspace @vansavali/api",
+    "db:generate": "npm run db:generate --workspace @vansavali/api",
+    "db:migrate": "npm run db:migrate --workspace @vansavali/api",
+    "db:studio": "npm run db:studio --workspace @vansavali/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "prisma@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "esbuild@0.28.2": true,
+    "esbuild@0.25.12": true
+  }
+}

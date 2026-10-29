@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RelationshipType {
+  PARENT_CHILD
+  SPOUSE
+  SIBLING
+}
+
+enum TimelineEventType {
+  BIRTH
+  DEATH
+  MIGRATION
+  ACHIEVEMENT
+  MARRIAGE
+  OTHER
+}
+
+model Lineage {
+  id              String       @id @default(cuid())
+  name            String
+  description     String       @default("")
+  parentLineageId String?
+  parentLineage   Lineage?     @relation("LineageBranch", fields: [parentLineageId], references: [id], onDelete: SetNull)
+  childLineages   Lineage[]    @relation("LineageBranch")
+  members         MemberLineage[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([parentLineageId])
+}
+
+model Member {
+  id              String          @id @default(cuid())
+  fullName        String
+  alternativeName String?
+  birthDate       DateTime?       @db.Date
+  deathDate       DateTime?       @db.Date
+  birthplace      String?
+  occupation      String?
+  currentLocation String?
+  photoUrl        String?
+  biography       String          @default("")
+  generation      Int             @default(0)
+  lineages        MemberLineage[]
+  outgoing        Relationship[]  @relation("RelationshipSource")
+  incoming        Relationship[]  @relation("RelationshipTarget")
+  events          TimelineEvent[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([fullName])
+  @@index([birthDate])
+  @@index([generation])
+}
+
+model MemberLineage {
+  memberId  String
+  lineageId String
+  member    Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  lineage   Lineage @relation(fields: [lineageId], references: [id], onDelete: Cascade)
+
+  @@id([memberId, lineageId])
+  @@index([lineageId])
+}
+
+model Relationship {
+  id           String           @id @default(cuid())
+  sourceId     String
+  targetId     String
+  type         RelationshipType
+  source       Member           @relation("RelationshipSource", fields: [sourceId], references: [id], onDelete: Cascade)
+  target       Member           @relation("RelationshipTarget", fields: [targetId], references: [id], onDelete: Cascade)
+  createdAt    DateTime         @default(now())
+
+  @@unique([sourceId, targetId, type])
+  @@index([sourceId, type])
+  @@index([targetId, type])
+}
+
+model TimelineEvent {
+  id          String            @id @default(cuid())
+  memberId    String
+  title       String
+  description String            @default("")
+  date        DateTime          @db.Date
+  type        TimelineEventType @default(OTHER)
+  location    String?
+  member      Member            @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  createdAt   DateTime          @default(now())
+
+  @@index([date])
+  @@index([memberId, date])
+}
+
+model HistoricalEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @default("")
+  date        DateTime @db.Date
+  location    String?
+  createdAt   DateTime @default(now())
+
+  @@index([date])
+}
