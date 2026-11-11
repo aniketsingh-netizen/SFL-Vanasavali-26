@@ -7,6 +7,10 @@ A family-history workspace for exploring connected lineages, member profiles, re
 - Node.js 20+
 - npm 10+
 - PostgreSQL 15+
+- typescript
+- css
+- reactflow
+- PostgreSQL
 
 ## Initialize and run
 
